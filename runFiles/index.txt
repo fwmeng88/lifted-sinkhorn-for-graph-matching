@@ -1,0 +1,4 @@
+exp 1 - run over all qaplib, compering the usage of diferant W formulations error.
+exp 2 - chinise cercters single experiment
+exp 3 - run over synthetic data of 2x1000 vs TRWS
+exp 4 - run over all teeth sets 

@@ -1,0 +1,71 @@
+function runTRWSonDataset()
+addpath(genpath('TRWS\mrfMinimizerMex_trws_lbp-master\'))
+no_exps = 10;
+graphSize = 100;
+numLabels = 3;
+knn = 10;
+
+
+for ii = 1:no_exps
+    %% load data
+    [metric,U,E] = generate_dataset2var(graphSize,numLabels,knn,ii);
+    [n,m] = size(U);
+    params.U = U;
+    params.W = reshape(kron(metric,E),n,m,n,m);
+    
+     %% run P4 solver
+    O_params_y = hardMax_solver( params);
+    X_y = O_params_y.X;
+    Y_y = O_params_y.Y;
+    obj_y(ii) = O_params_y.obj;
+    
+    %% run mosek solver
+    O_params_m = JA_LP_HM(params);
+    X_m = O_params_m.X;
+    Y_m = O_params_m.Y;
+    obj_m(ii) = O_params_m.obj;
+
+    %% run TRWS solver
+    tic
+    dataCost = U';
+    TRWSoptions.verbosity = 2;
+    TRWSoptions.maxIter = 20;
+    TRWSoptions.printMinIter=0;
+    [labels{ii}, energy(ii),LB(ii)] = mrfMinimizeMex(dataCost, sparse(double(E)), metric, TRWSoptions);
+    
+    %%%%%%%%%%%%
+    X_trws = zeros(n,m);
+    I = sub2ind([n,m],1:n,labels{ii}');
+    X_trws(I) = 1;
+    W = kron(metric,E);
+    objTRWS = X_trws(:)'*W*X_trws(:) + sum(U(:).*X_trws(:));
+    obj_y2(ii) = X_y(:)'*W*X_y(:) + sum(U(:).*X_y(:));
+    obj_m2(ii) = X_m(:)'*W*X_m(:) + sum(U(:).*X_m(:));
+    %%%%%%%%%%%%
+    
+    fprintf('YAM -   instance %d. Got energy =%.4f\n',ii,obj_y(ii));
+    fprintf('mosek - instance %d. Got energy =%.4f\n',ii,obj_m(ii));
+    fprintf('TRW-S - instance %d. Got energy = %.4f\n',ii,energy(ii));
+    fprintf('mosek/yam distance X = %.4f, Y = %.4f\n',norm(X_y - X_m),norm(Y_y(:) - Y_m(:)));
+    
+    
+    times(ii) = toc;
+
+    disp('end one test')
+end
+figure(2)
+plot(obj_y2,'b')
+hold on;
+plot(obj_m2,':r');
+plot(energy,'g');
+plot(obj_y,'--b')
+hold on;
+plot(obj_m,':r');
+plot(LB,'--g');
+title('LB,UB')
+xlabel('no_exp');
+ylabel('energy');
+legend('hardMax UB','mosek UB','TRWS UB','hardMax LB','mosek LB','TRWS LB')
+hold off
+
+end

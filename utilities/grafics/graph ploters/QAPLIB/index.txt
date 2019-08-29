@@ -1,0 +1,5 @@
+QAPLIB_plot1 - plot all data sets in logaritmic scale 
+QAPLIB_plot1b - plot divergence of all data sets 
+QAPLIB_plot2 - plot diferante dataset in diferant windows  
+QAPLIB_plot3 - scatter time vs size and no_iterations vs size of all several data sets. 
+

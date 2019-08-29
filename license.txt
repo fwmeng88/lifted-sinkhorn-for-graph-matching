@@ -1,0 +1,40 @@
+% Function optimize solve QAP and MRF energy 
+% this algorithm givs an aproximated solution to the problem 
+% argmin sum_ijkl(X_ij*X_kl*W_ijkl) + sum_ij(X_ij*Z_ij)
+% s.t. X is a premutation matrix - for type 'premutation'
+%                       OR
+%s.t X is an asignment matrix - for type 'assignmen'
+%INPUT:
+%params - Structure containing all input parameters - 
+%             Field :
+%                 A             :     nxn matrix(double) of edges in graph A (used for QAP)
+%                 B             :     nxn matrix(double) of edges in graph B (used for QAP)
+%                 W             :     n^2xm^2 matrix (double)representing quadratic loss term
+%                 Z             :     nxm matrix (double) representing the linear loss term
+%                 type          :     what kind of X to look for ('premutation'/'asignment')
+%                 stop_critiria :     If argument change is less than stop_critiria then stop(double), default: 1e-4 
+%                 entropy       :     a user determined parameter, control the tradeof between solution time and accurasy of the solution (double)
+%                 max_iterations:     a failsafe parameters inforcing the algorithem to stop after the iteration counter = max_iterations
+%     notes:
+%         User do not need to input A,B and W, but if A,B, and W were inputed together than the algorithm takes W
+%         When running 'permutation' option W needs to be a squeere matrix and the matrix Z is generated automaticaly to be ones(n,n)
+%         When running 'asignment' user should give W,Z as input. failing to do so would triger an error
+% OUTPUT:
+% O_params - Structure containing all output parameters
+%             Field :
+%                 X            : nxn matrix(double), solution to the relaxed problem (X part)
+%                 Y            : n^2xn^2 matrix(double), solution to the relaxed problem (Y part)
+%                 X_projected  : nxn matrix(double), a projection of X to permutation subset
+%                 no_iterations: int, number of bergman iterations to reach solution
+%                 run_time     : double, time it took to converge to the solution (or to reach max iteration premited)
+%                 energy_LB    : double, energy of the relexed problem (converges to a LB from ubove as the entropy going to zero)
+%                 energy_UB    : double, energy of the projected solution (is an upper bound to the problem)
+                
+% The relaxed problem is - 
+% argmin_X,Y {<X,Z> + <Y,W> + alpha*(X(logX - 1) + Y(logY - 1)}
+% s.t. X1 = 1
+%      X'1 = 1
+%      sum_i(Y_ijkl) = X_kl
+%      sum_j(Y_ijkl) = X_kl
+%      sum_k(Y_ijkl) = X_ij
+%      sum_l(Y_ijkl) = X_ij
