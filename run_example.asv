@@ -1,22 +1,16 @@
-%---------------------------------------------------------------
-%script_simple_QAP_example 
-%INPUT
-% �XXX TODO XXX
-%---------------------------------------------------------------
-clear all;
-% min  [X]^T W [X]
-% s.t.  X is permutation
-n = 40;
-Ent = 1;
+
 %generate a premutation matrix
+n = 40; %number of samples
 X = zeros(n);
 idx = randperm(n);
 for i = 1:n
     X(i,idx(i)) = 1;
 end
+
 figure(2); imagesc(X);
 % W = rand(n^2, n^2);
-A = rand(n,n); A = 0.5*(A + A'); 
+A = rand(n,n); 
+A = 0.5*(A + A'); 
 noiseM = 0.1*(rand(n)*2-1); noiseM = 0.5*(noiseM + noiseM'); 
 B = X*A*X' + noiseM;
 W = -kron(A,B);

@@ -1,0 +1,42 @@
+
+%generate a premutation matrix
+n = 40; %number of samples
+X = zeros(n);
+idx = randperm(n);
+for i = 1:n
+    X(i,idx(i)) = 1;
+end
+figure(2); imagesc(X);
+%generate a noised graph matching problem w.r.t. the premutation matrix X
+figure(2); imagesc(X);
+A = rand(n,n); 
+A = 0.5*(A + A'); 
+noiseM = 0.1*(rand(n)*2-1); noiseM = 0.5*(noiseM + noiseM'); 
+B = X*A*X' + noiseM;
+W = -kron(A,B);
+
+%---------------------------------------------------------------
+%ajust algorithm parameters
+PMD_params.stop_critiria = 10^-3;%stopping critiria for outer iterations (PMD)
+PMD_params.stop_critiria_sinkhorn = 10^-2;%stopping critiria for iner iterations (lifted sinkhorn)
+PMD_params.max_iterations = 1000;
+PMD_params.graphics = true;
+
+%---------------------------------------------------------------
+% run experiments
+%---------------------------------------------------------------
+PMD_params.Z = zeros(n);%linear energy term
+PMD_params.W = W;       %quadratic energy term
+PMD_params.A = A;
+PMD_params.B = B;
+PMD_params.type = 'permutation'; %labelling
+PMD_params.n = n; %the dimensions of unknown X
+PMD_params.m = n;
+PMD_params.entropy =1;%1
+PMD_params.sparse = false;
+PMD_params.Adj = [];
+
+[ O_params ] = PMD_sinkhorn( PMD_params );
+
+disp(O_params)
+
